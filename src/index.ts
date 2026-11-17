@@ -1,10 +1,17 @@
 import PostalMime from "postal-mime";
 import { formatSummary, stripHtml, type SummaryInput } from "./format";
+import { isAllowedRecipient, parseRecipients } from "./recipients";
 
 const PARSE_LIMIT = 1024 * 1024; // 1 MiB: bigger mail gets a header-only summary (CPU budget)
 
 export default {
   async email(message, env, _ctx): Promise<void> {
+    if (!isAllowedRecipient(message.to, parseRecipients(env.ALLOWED_RECIPIENTS))) {
+      console.warn("forward-bot: rejecting mail to a recipient not in ALLOWED_RECIPIENTS");
+      message.setReject("Unknown recipient");
+      return;
+    }
+
     // The raw stream may be single-use and the docs don't say whether forward() leaves it
     // readable, so for parseable sizes copy the bytes out first (cheap), then forward.
     // Parsing (the CPU-heavy part) happens only after the forward has succeeded.

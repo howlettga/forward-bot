@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { formatSummary, stripHtml, TELEGRAM_LIMIT } from "../src/format";
 
-const base = { from: "a@example.com", to: "contact@howlettga.net" };
+const base = { from: "a@example.com", to: "contact@example.com" };
 
 describe("formatSummary", () => {
   it("escapes & < > in every field", () => {

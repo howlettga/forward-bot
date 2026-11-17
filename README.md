@@ -1,12 +1,12 @@
 # forward-bot
 
-A Cloudflare Email Worker. Mail sent to `contact@howlettga.net` is:
+A Cloudflare Email Worker. Mail sent to an address you route to it (say `contact@example.com`) is:
 
 1. **forwarded** to a personal inbox (critical path: if forwarding fails, the handler throws so Cloudflare bounces/retries), then
 2. **summarized in Telegram** by a dedicated bot (best effort: failures are logged and swallowed, never dropping the email).
 
 ```
-sender -> Cloudflare Email Routing -> rule: contact@howlettga.net -> Worker email()
+sender -> Cloudflare Email Routing -> rule: contact@example.com -> Worker email()
                                                         |- message.forward(FORWARD_TO)
                                                         '- Telegram sendMessage(CHAT_ID)
 ```
@@ -15,13 +15,14 @@ The summary has from, to, subject, date, a text body (HTML is stripped if there 
 
 ## Secrets
 
-Nothing sensitive is in this repo. Three values are needed, all as Worker secrets (and in the gitignored `.dev.vars` locally; see `.dev.vars.example`):
+Nothing personal or sensitive is in this repo: no addresses, domains or tokens. Configuration is all Worker secrets (and in the gitignored `.dev.vars` locally; see `.dev.vars.example`):
 
 | Name | Meaning |
 |---|---|
 | `TELEGRAM_BOT_TOKEN` | token from @BotFather |
 | `TELEGRAM_CHAT_ID` | numeric id of the chat the bot posts to |
 | `FORWARD_TO` | the destination inbox (must be a verified Email Routing destination) |
+| `ALLOWED_RECIPIENTS` | *optional* comma-separated inbound addresses to accept, e.g. `contact@example.com`. Mail to anything else is rejected. Unset accepts whatever the routing rule sends. |
 
 ## One-time setup
 
@@ -29,8 +30,8 @@ Nothing sensitive is in this repo. Three values are needed, all as Worker secret
 2. **Destination address.** `npx wrangler email routing addresses create <DESTINATION_EMAIL>`, then click the verification link Cloudflare emails to that inbox. `forward()` only works for verified destinations.
 3. **Telegram bot.** In Telegram, message @BotFather, run `/newbot`, and keep the token. Then send your new bot any message.
 4. **Chat id.** `curl https://api.telegram.org/bot<TOKEN>/getUpdates` and read `result[].message.chat.id` (your private chat).
-5. **Secrets.** For each of the three names: `npx wrangler secret put <NAME>` (after the first deploy, or `wrangler secret bulk` from a dotenv file).
-6. **Routing rule.** Route `contact@howlettga.net` to the Worker `forward-bot` (Dashboard > Email Routing > Routing rules, or `npx wrangler email routing rules create ...`; check `--help` for the worker-action flags).
+5. **Secrets.** For each name above: `npx wrangler secret put <NAME>` (after the first deploy, or `wrangler secret bulk` from a dotenv file).
+6. **Routing rule.** Route your inbound address (e.g. `contact@example.com`) to the Worker `forward-bot` (Dashboard > Email Routing > Routing rules, or `npx wrangler email routing rules create ...`; check `--help` for the worker-action flags).
 
 ## Local testing
 
@@ -44,7 +45,7 @@ In another terminal, post the sample message to the local email handler (it must
 ```sh
 curl -X POST 'http://localhost:8787/cdn-cgi/local/email' \
   --url-query 'from=alice@example.com' \
-  --url-query 'to=contact@howlettga.net' \
+  --url-query 'to=contact@example.com' \
   --data-binary @test/fixtures/sample.eml
 ```
 
@@ -56,4 +57,4 @@ Locally, `forward()` is simulated (wrangler logs the destination and headers) an
 npm run deploy
 ```
 
-Logs: `npx wrangler tail forward-bot --format pretty`. End-to-end check: send mail from another account to `contact@howlettga.net` and confirm it arrives in the inbox and in Telegram.
+Logs: `npx wrangler tail forward-bot --format pretty`. End-to-end check: send mail from another account to your inbound address and confirm it arrives in the inbox and in Telegram.
