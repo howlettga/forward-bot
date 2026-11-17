@@ -1,0 +1,18 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "forward-bot",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-11-16",
+  // No vars here on purpose: TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID and FORWARD_TO
+  // are Worker secrets (`wrangler secret put`) and live in .dev.vars locally.
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1,
+    "logs": {
+      "enabled": true,
+      "head_sampling_rate": 1,
+      "persist": true,
+      "invocation_logs": true
+    }
+  }
+}
