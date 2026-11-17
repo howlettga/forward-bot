@@ -104,7 +104,7 @@ Prompt:
 > - `README.md`, aimed at a future maintainer:
 >   - what the Worker does;
 >   - one-time setup (Email Routing, destination verification, BotFather, getting the chat ID with `getUpdates`, `wrangler secret put` for each secret);
->   - local testing with `wrangler dev` plus `curl -X POST 'http://localhost:8787/cdn-cgi/handler/email?from=a@example.com&to=contact@howlettga.net' --data-binary @test/fixtures/sample.eml`. Verify the exact local email-testing endpoint in the docs;
+>   - local testing with `wrangler dev` plus `curl -X POST 'http://localhost:8787/cdn-cgi/local/email?from=a@example.com&to=contact@howlettga.net' --data-binary @test/fixtures/sample.eml`. Verify the exact local email-testing endpoint in the docs;
 >   - deploy.
 >
 >   Use placeholders, never the real personal address.
